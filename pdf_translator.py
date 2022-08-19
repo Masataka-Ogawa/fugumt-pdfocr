@@ -436,7 +436,7 @@ def make_static_html_ocr(pdf_path, pickle_path, html_path, template="template/te
             abstract = ''
             for elm in out_dic['paper_info']['abstract']:
                 abstract += elm['ja_best']
-            out_html = out_html.replace('%%TITLE%%', out_dic['paper_info']['title']).replace('%%ABSTRACT%%', abstract)
+            out_html = out_html.replace('%%TITLE%%', escape_break_word(out_dic['paper_info']['title'])).replace('%%ABSTRACT%%', escape_break_word(abstract))
             out.write('{}'.format(out_html))
 
     with gzip.open(pickle_path+'.json.gz', 'wt') as out:
