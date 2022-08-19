@@ -1,0 +1,20 @@
+{
+  "marian_command": "/app/marian/build/marian-server",
+  "app_root": "/opt/",
+  "marian_args": [
+    ["-p","8100","-c","model/pdfocr.yml", "--mini-batch", "10", "--log", "log/marian8105_pdf.log"]
+  ],
+  "marian_args_pdf_translator": [
+    ["-p","8100","-c","model/pdfocr.yml", "--mini-batch", "10", "--log", "log/marian8105_pdf.log"]
+  ],  "pickle_dir": "/opt/pickle/",
+  "webserver_marian_ports": [8100],
+  "pdf_ports": [8100],
+  "log_dir": "/opt/log/",
+  "pdf_dir": "/opt/pdf/",
+  "sleep_sec": 10,
+  "memfile_max": 100000000,
+  "upload_limit": 100000000,
+  "template_dir": "/opt/template/",
+  "static_pdfhtml_template": "pdf_server_static.tmpl",
+  "max_marian_memory": 2000000000
+}

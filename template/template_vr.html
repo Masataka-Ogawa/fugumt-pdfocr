@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>arXiVR</title>
+    <meta name="description" content="VR arxiv">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.2.0/aframe.min.js" integrity="sha512-/gO16YMp20RIqCZXZyvMlzALQqEoiDU0akshw25wFiXCRGl+0p/HPWkOd8HWFn6bnatGhxakGLfYhWaPPVQIyA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.5/dist/html2canvas.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.0/dist/aframe-extras.min.js"></script>
+    <script>translated_data = %%JSON_DATA%%</script>
+    <script>  
+      AFRAME.registerComponent('input-listener', {
+        init:function () {
+          this.el.addEventListener('bbuttondown', function (event) {
+            current_pos = document.querySelector("#rig").getAttribute('position')
+            current_pos['y'] += 0.5
+            document.querySelector("#rig").setAttribute('position', current_pos);
+          });
+          this.el.addEventListener('ybuttondown', function (event) {
+            current_pos = document.querySelector("#rig").getAttribute('position')
+            current_pos['y'] -= 0.5
+            document.querySelector("#rig").setAttribute('position', current_pos);
+          });
+        }
+    });
+
+</script>
+  </head>
+  <body>
+    <a-scene background="color: #ECECEC" id="cvs3d" cursor="rayOrigin: mouse; fuse: false" raycaster="objects: .raycastable">
+
+        <a-entity id="rig" position="0 -1.2 0" movement-controls="fly: true; speed:0.1; constrainToNavMesh: true">
+
+            <a-entity id="camera" position="0 0 0" camera look-controls="pointerLockEnabled: true">
+            </a-entity>
+            <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .raycastable; showLine: true; lineColor: red;" line="color: red" input-listener="hand: right">
+               <a-text id="detail"  position="0.0 0.0 -0.8" scale="0.5 0.5 0.5" color="#ff0000"></a-text>
+            </a-entity>
+            <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .raycastable; showLine: true; lineColor: red;" line="color: red" input-listener="hand: left">
+                <a-text id="detail_left"  position="0.0 0.0 -0.8" scale="0.5 0.5 0.5" color="#ff0000"></a-text>
+            </a-entity>
+        </a-entity>
+    </a-scene>
+
+    
+  <div id="target1" class="target" style="width: 600px;">
+  </div>
+   <script>
+    const array2 = [...Array(translated_data['png_images'].length).keys()]
+    const places = [
+    {x: 0, y: 1.5 , z: -2},
+    {x: 1.4, y: 1.5 , z: -1.4},
+    {x: 2, y: 1.5 , z: 0},
+    {x: 1.4, y: 1.5 , z: 1.4},
+    {x: 0, y: 1.5 , z: 2},
+    {x: -1.4, y: 1.5 , z: 1.4},
+    {x: -2, y: 1.5 , z: 0}, 
+    {x: -1.4, y: 1.5 , z: -1.4} 
+    ]
+    const rotates = [
+    {x: 0, y: 0, z: 0},
+    {x: 0, y: -45 , z: 0},
+    {x: 0, y: -90 , z: 0},
+    {x: 0, y: -135 , z: 0},
+    {x: 0, y: 180 , z: 0},
+    {x: 0, y: 135 , z: 0},
+    {x: 0, y: 90 , z: 0}, 
+    {x: 0, y: 45 , z: 0} 
+    ]
+    const image_width = 1.6
+    const image_height = image_width * translated_data['png_size'][0]['height'] / translated_data['png_size'][0]['width']
+    var seq = 1
+    array2.forEach((idx) => {
+        let img_base64 = translated_data['png_images'][idx]
+        let entityIMG = new document.createElement('a-image'); 
+        entityIMG.setAttribute('src', 'data:image/png;base64,' + img_base64);
+        let pos = JSON.parse(JSON.stringify( places[idx % 8]))
+        pos["y"] = -1.0 * (image_height * 1.05) * Math.ceil((idx+1) / 8) + image_height / 2.0
+        
+        entityIMG.setAttribute('position', pos);
+        entityIMG.setAttribute('rotation', rotates[idx % 8]);
+        entityIMG.setAttribute('width', image_width);
+        entityIMG.setAttribute('height', image_height);
+        entityIMG.setAttribute('class', 'raycastable');
+        entityIMG.addEventListener('mouseenter', entityIMG.setAttribute('material', 'color', '#046de7'));
+        entityIMG.addEventListener('mouseleave', entityIMG.setAttribute('material', 'color', 'white'));
+        entityIMG.addEventListener('click', function (evt) {get_translated_image(idx, evt.detail.intersection.uv)});
+        document.querySelector('a-scene').appendChild(entityIMG);
+    });
+
+
+    function get_translated_image(page_idx, point){
+        console.log(page_idx, point);
+        let x = point.x * 1700
+        let y = (point.y * -1.0 + 1.0) * 2200
+        console.log(x, y);
+        let page_data = translated_data['pages'][page_idx]
+        let inhtml = '<div><ul>'
+        for (j in page_data){
+            block = page_data[j]
+            block_id = block['block_id']
+            texts = block['texts']
+            coords = block['coords']
+            if ((coords[0] < x && x < coords[2]) && (coords[1] < y && y < coords[3])){
+                console.log(block_id)
+                console.log(texts.map(function(v){return v['ja_best']}).join('\n'))
+                for (k in texts){
+                    txt = texts[k]
+                    inhtml += '<li>' + txt['ja_best'] + '</li>';
+                }
+                break
+            } 
+        }
+
+        if(inhtml == '<div><ul>'){
+            let img_base64 = translated_data['png_images'][page_idx]
+            let entityIMG = new document.createElement('a-image'); 
+            entityIMG.setAttribute('src', 'data:image/png;base64,' + img_base64);
+            entityIMG.setAttribute('width', image_width);
+            entityIMG.setAttribute('height', 2.2);
+            entityIMG.setAttribute('class', 'raycastable');
+            entityIMG.addEventListener('click', function (evt) {
+            let elms = document.querySelector('#detail_left')
+            while (elms.firstChild) {
+                elms.removeChild(elms.firstChild);
+            }
+            });
+            document.querySelector('#detail_left').appendChild(entityIMG);
+        }else{
+            inhtml += '</ul></div>'
+            let new_id = 'new_paper' + seq;
+            seq += 1;
+            $("<div/>").attr('id',new_id).attr('style', 'width: 1000px;').appendTo('body');
+            $("#" + new_id)[0].innerHTML = inhtml
+            html2canvas($("#" + new_id)[0], { scale: 5, width: 1000, height: 1000}).then(function(cvs) {
+                let base64 = cvs.toDataURL("image/png")
+                let entityIMG = new document.createElement('a-image'); 
+                entityIMG.setAttribute('width', 3);
+                entityIMG.setAttribute('height', 3);
+                entityIMG.setAttribute('src', base64);
+                entityIMG.setAttribute('class', 'raycastable');
+                entityIMG.addEventListener('click', function (evt) {
+                let elms = document.querySelector('#detail')
+                while (elms.firstChild) {
+                    elms.removeChild(elms.firstChild);
+                }
+                });
+                document.querySelector('#detail').appendChild(entityIMG);
+            });
+        }
+    }
+    </script> 
+
+  </body>
+</html>
+
+

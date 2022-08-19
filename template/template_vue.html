@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>翻訳結果</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!--<script src="https://unpkg.com/vue"></script>-->
+    <!-- Add this to <head> -->
+
+    <!-- Load required Bootstrap and BootstrapVue CSS -->
+    <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css" />
+
+    <script>translated_data = %%JSON_DATA%%</script>
+
+    <!-- Load polyfills to support older browsers -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver" crossorigin="anonymous"></script>
+
+    <!-- Load Vue followed by BootstrapVue -->
+    <script src="https://unpkg.com/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-vue@2.21.2/dist/bootstrap-vue.min.js"></script>
+
+    <!-- Load the following for BootstrapVueIcons support -->
+    <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js"></script>
+    <style type="text/css">
+        table {
+            word-wrap: break-word;
+            table-layout: fixed;
+        }
+        .translated_thead {
+            display: none;
+        }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+      <a class="navbar-brand" href="https://fugumt.com/">Fugu-MT</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="https://github.com/s-taka/fugumt">Github</a>
+            </li>
+        </ul>
+      </div>
+    </nav>
+    <div>
+        自動取得タイトル: %%TITLE%% <br />
+        自動取得アブストラクト: %%ABSTRACT%%
+    </div>
+    <div id="app">
+        <template>
+            <div class="border" style="padding: 0.2em 0.2em 0.2em 0.2em;">
+                <h5>翻訳結果</h5>
+                <b-row class="my-1" >
+                    <b-col sm="3">
+                        <label for="current_page">表示ページ</label>{{show_page}} / {{max_page}}
+                        <b-button v-on:click="all_page()" variant="primary">全ページを表示</b-button>
+                    </b-col>
+                    <b-col sm="3">
+                        <b-button v-on:click="prev_page()" variant="primary">前ページ</b-button>
+                        <b-button v-on:click="next_page()" variant="primary">次ページ</b-button>
+                    </b-col>
+                    <b-col sm="6">
+                        
+                    </b-col>
+                </b-row>
+            </div>
+        </template>
+        <template>
+            <div class="border" style="padding: 0.2em 0.2em 0.2em 0.2em;">
+                <div class="row"  style="display: none;" id='display_area' v-show="show" ref='display_area'> 
+                    <b-row class="my-1" v-for="item in items">
+                        <b-col sm="6" style="margin-top: 1rem;" class="small">
+                            <div v-for="bl in item.show_translated" class="small">
+                                <b-table small hover :items="bl.texts" thead-class="translated_thead"></b-table>
+                            </div>
+                        </b-col>
+                        <b-col sm="6" style="margin-top: 1rem;">
+                            <div style="margin-top: 1rem;" ref='div_card'>
+                                <b-card>
+                                    <img :src="'data:image/png;base64,'+item.img_base64" width='100%' :usemap="'#map'+item.page_num" ref='pdf_page_image'/>
+                                    <map :name="'map'+item.page_num">
+                                        <area v-for="bl in item.show_blocks" shape="rect" :coords="''+bl.coords[0]+','+bl.coords[1]+','+bl.coords[2]+','+bl.coords[3]" :alt="bl.block_id" :id="bl.block_id" href="#" :title="bl.ja" @click="select_block(bl.page, bl.block_id)"/>
+                                    </map>
+                                </b-card>
+                            </div>
+                        </b-col>
+                    </b-row>
+                </div>
+            </div>
+        </template>
+        <template>
+            <div class="border" style="padding: 0.2em 0.2em 0.2em 0.2em;">
+                <b-row class="my-1" >
+                    <b-col sm="3">
+                        <label for="current_page">表示ページ</label>{{show_page}} / {{max_page}}
+                        <b-button v-on:click="all_page()" variant="primary">全ページを表示</b-button>
+                    </b-col>
+                    <b-col sm="3">
+                        <b-button v-on:click="prev_page()" variant="primary">前ページ</b-button>
+                        <b-button v-on:click="next_page()" variant="primary">次ページ</b-button>
+                    </b-col>
+                    <b-col sm="6">
+                        
+                    </b-col>
+                </b-row>
+            </div>
+        </template>
+    </div>
+
+<script>
+
+function to_show_translated_texts(texts){
+    ret = []
+    for(i in texts){
+        txt = texts[i]
+        ret.push(
+            { 'EN': txt['en'], 'JA': txt['ja_best'] + '  (score: ' + txt['ja_best_score'].toFixed(1)  + ')'}
+        )
+
+    }
+    return ret
+}
+
+function _sort_blocks(lhs, rhs){
+    let threshold_xdiff_range = Math.max(lhs.coords[2] - lhs.coords[0], rhs.coords[2] - rhs.coords[0]) / 1.5
+    //console.log('threshold_xdiff_range: ' + threshold_xdiff_range)
+    if (Math.abs(lhs.coords[0] - rhs.coords[0]) < threshold_xdiff_range){
+        return lhs.coords[1] - rhs.coords[1]
+    }else{
+        return lhs.coords[0] - rhs.coords[0]
+    }
+}
+
+function sort_blocks(blocks){
+    return blocks.sort(_sort_blocks);
+}
+
+function to_show(translated_data, div_img_width, page_condition, block_condition){
+    let ret = []
+    let show_pages = []
+    if(page_condition == 'ALL'){
+        for(i in translated_data['png_images']){
+            show_pages.push(i)
+        }
+    }else{
+        show_pages.push(page_condition)
+    }
+
+    for (i in show_pages){
+        let current_page = show_pages[i]
+        let img_base64 = translated_data['png_images'][current_page]
+        let img_width = translated_data['png_size'][current_page]['width']
+        let blocks = translated_data['pages'][current_page]
+        let show_blocks = []
+        let show_translated = []
+        for (j in blocks){
+            block = blocks[j]
+            block_id = block['block_id']
+            texts = block['texts']
+            coords = block['coords'].map(function(v){return v / (img_width / div_img_width)})
+            show_blocks.push({
+                'page': current_page,
+                'block_id': "block" + block_id,
+                'coords': coords,
+                'ja': texts.map(function(v){return v['ja_best']}).join('\n')
+            })
+            if (block_condition == 'ALL' || block_condition == "block" + block_id){
+                show_translated.push({'texts': to_show_translated_texts(texts), 'coords': coords}) 
+            }
+
+        }
+        ret.push({
+            'img_base64': img_base64,
+            'show_blocks': sort_blocks(show_blocks),
+            'show_translated': sort_blocks(show_translated),
+            'page_num': 'page' + current_page
+        })
+    }
+  return ret
+}
+
+
+window.onload = () => {
+    new Vue({
+      el: '#app',
+      data() {
+        return {
+          show: true,
+          items: to_show(translated_data, this.get_card_width(), 'ALL', 'ALL'),
+          max_page: translated_data['png_images'].length,
+          current_page: 'ALL',
+          show_page: 'ALL',
+          current_block_id: -1
+        }
+      },
+      mounted:function(){
+        show_data = to_show(translated_data, this.get_card_width(), this.current_page, 'ALL')
+        this.items = show_data
+      },
+      methods: {
+        prev_page() {
+            if (this.current_page == 'ALL'){
+                this.current_page = 0
+            }else{
+                this.current_page = Math.max(0, this.current_page - 1)
+            }
+            this.show_page = this.current_page + 1
+            this.items = to_show(translated_data, this.get_card_width(), this.current_page, 'ALL')
+            window.scrollTo({top: 0, behavior: "smooth"});
+        },
+        next_page() {
+            if (this.current_page == 'ALL'){
+                this.current_page = Math.min(this.max_page - 1, 1)
+            }else{
+                this.current_page = Math.min(this.max_page - 1, this.current_page + 1)
+            }
+            this.show_page = this.current_page + 1
+            this.items = to_show(translated_data, this.get_card_width(), this.current_page, 'ALL')
+            window.scrollTo({top: 0, behavior: "smooth"});
+        },
+        all_page() {
+            this.current_page = 'ALL'
+            this.show_page = 'ALL'
+            this.items = to_show(translated_data, this.get_card_width(), this.current_page, 'ALL')
+            window.scrollTo({top: 0, behavior: "smooth"});
+        },
+        get_card_width(){
+            return this.$refs.pdf_page_image === undefined ? 300 : this.$refs.pdf_page_image[0].getBoundingClientRect().width
+        },
+        select_block(page, block_id){
+            console.info(page, block_id)
+            this.current_page = parseInt(page)
+            this.show_page = this.current_page + 1
+            this.items = to_show(translated_data, this.get_card_width(), this.current_page, block_id)
+        }
+      }
+    })
+}
+    </script>
+  </body>
+</html>
