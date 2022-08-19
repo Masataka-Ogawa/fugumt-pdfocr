@@ -1,0 +1,5 @@
+/docker_home/
+/fugumt/__pycache__
+/log/*.*
+/model/*.*
+/test/
