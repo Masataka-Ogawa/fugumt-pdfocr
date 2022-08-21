@@ -142,8 +142,8 @@ def get_title_abstract(in_data, fgmt, make_marian_conf=None, logger=None):
                 if len(en) > 100:
                     abstract_strs.append(en)
 
-    from transformers import PegasusForConditionalGeneration, PegasusTokenizer
-    import torch
+    from transformers import pipeline
+    summarizer = pipeline('summarization', model='sshleifer/distilbart-cnn-12-6')
     import time
 
     src_txt = '.'.join(abstract_strs)[0:min(1024, len('.'.join(abstract_strs)))]
@@ -152,17 +152,9 @@ def get_title_abstract(in_data, fgmt, make_marian_conf=None, logger=None):
     if logger:
         logger.info("abstract text [{}]".format(src_txt))
 
-    model_name = 'google/pegasus-cnn_dailymail'
-    torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    tokenizer = PegasusTokenizer.from_pretrained(model_name)
-    model = PegasusForConditionalGeneration.from_pretrained(model_name).to(torch_device)
-
     start = time.time()
     with torch.no_grad():
-        batch = tokenizer.prepare_seq2seq_batch([src_txt], truncation=True, padding='longest', return_tensors="pt").to(
-            torch_device)
-        translated = model.generate(**batch)
-        ret_txt = tokenizer.batch_decode(translated, skip_special_tokens=True)
+        ret_txt = summarizer(src_txt)
 
     marian_processes = []
     if make_marian_conf:
@@ -173,7 +165,11 @@ def get_title_abstract(in_data, fgmt, make_marian_conf=None, logger=None):
     if logger:
         logger.info("translate abstract {}".format(ret_txt))
 
-    txt = ret_txt[0]
+    try:
+        txt = ret_txt[0]['summary_text']
+    except:
+        txt = ''
+        
     if len(src_txt) < 150:
         txt = src_txt
     to_translate = pre_proc_text(txt.replace('<n>', '\n\n'))
