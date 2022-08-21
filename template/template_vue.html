@@ -74,8 +74,8 @@
             <div class="border" style="padding: 0.2em 0.2em 0.2em 0.2em;">
                 <div class="row"  style="display: none;" id='display_area' v-show="show" ref='display_area'> 
                     <b-row class="my-1" v-for="item in items">
-                        <b-col sm="6" style="margin-top: 1rem;" class="small">
-                            <div v-for="bl in item.show_translated" class="small">
+                        <b-col sm="6" style="margin-top: 1rem;">
+                            <div v-for="bl in item.show_translated">
                                 <b-table small hover :items="bl.texts" thead-class="translated_thead"></b-table>
                             </div>
                         </b-col>

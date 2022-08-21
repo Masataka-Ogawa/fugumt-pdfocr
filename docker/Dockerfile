@@ -41,7 +41,6 @@ RUN pip install -U layoutparser[layoutmodels]
 RUN pip install -U layoutparser[ocr]
 RUN pip install  pdf2image pdf2img
 RUN apt-get install -y tesseract-ocr libtesseract-dev libleptonica-dev pkg-config tesseract-ocr-eng tesseract-ocr-osd tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-spa  poppler-utils
-RUN pip install pyocr
 RUN pip install --upgrade  numpy scipy setuptools bottle websocket_client h5py mecab-python3 unidic-lite  tf-sentencepiece tensorflow_hub tensorflow tensorflow_text nltk bert-for-tf2 allennlp allennlp-models psutil timeout-decorator pdfminer 
 RUN pip install --upgrade google-cloud-storage
 RUN groupadd -g 1000 ec2-user && \

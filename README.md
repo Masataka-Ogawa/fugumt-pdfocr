@@ -32,7 +32,7 @@ Dockerがセットアップされている場合、下記のように実行で�
    - OCRを使った翻訳
       - ``docker run --rm -it --gpus all -v /path/to/fugumt-pdfocr:/opt -v /path/to/fugumt-pdfocr/docker_home:/home/ec2-user --user 1000:1000 pdf_translator bash /opt/run_ocr.sh /opt/test.pdf``
       - 「/path/to」は環境に合わせて変更してください。git cloneを行った先のディレクトリを指定する必要があります。
-      - 「/opt/test.pdf」は翻訳対象のPDF名です。test.pdf.htmlなどファイル名の後に文字列がついたファイルが作成されます。.htmlで終わるファイルが翻訳結果です。
+      - 「/opt/test.pdf」は翻訳対象のPDF名です。test.pdf.ocr.htmlなどファイル名の後に文字列がついたファイルが作成されます。.htmlで終わるファイルが翻訳結果です。
       - このモードではタイトルの自動取得、アブストラクトの自動作成が行われますが、論文形式のPDF以外ではうまく生成されない可能性があります。
 
 
@@ -53,19 +53,27 @@ OSSとして素晴らしいソフトウェアを公開された方々に感謝�
 * bottle (MIT-License): https://bottlepy.org/docs/dev/
 * gunicorn (MIT License): https://github.com/benoitc/gunicorn
 * tensorflow (Apache 2.0): https://github.com/tensorflow/tensorflow
+* pytorch (PyTorch has a BSD-style license): https://pytorch.org/
+* transformers (Apache-2.0 license): https://github.com/huggingface/transformers
 * Universal Sentence Encoder (Apache 2.0): https://tfhub.dev/google/universal-sentence-encoder/3
+* fasttext(MIT license): https://github.com/facebookresearch/fastText
 * allennlp (Apache 2.0):https://github.com/allenai/allennlp , [AllenNLP: A Deep Semantic Natural Language Processing Platform](https://www.semanticscholar.org/paper/AllenNLP%3A-A-Deep-Semantic-Natural-Language-Platform-Gardner-Grus/a5502187140cdd98d76ae711973dbcdaf1fef46d)
 * spacy (MIT License): https://spacy.io/
 * pdfminer (MIT-License): https://github.com/euske/pdfminer
 * websocket-client (BSD-3-Clause License): https://github.com/websocket-client/websocket-client
 * psutil(BSD-3-Clause License): https://github.com/giampaolo/psutil
 * timeout-decorator (MIT License): https://github.com/pnpnpn/timeout-decorator 
-* bootstrap(MIT-License) : https://getbootstrap.com/
-* jquery(MIT-License): https://jquery.com/
-* DataTables(MIT-License): https://datatables.net/
 * pySBD(MIT-License): https://github.com/nipunsadvilkar/pySBD
 * Layout Parser(Apache 2.0 License): https://github.com/Layout-Parser/layout-parser
 * tesseract(Apache 2.0 License): https://github.com/tesseract-ocr/tesseract
+* bootstrap(MIT-License) : https://getbootstrap.com/
+* jquery(MIT-License): https://jquery.com/
+* DataTables(MIT-License): https://datatables.net/
+* pdf.js(Apache-2.0 license): https://github.com/mozilla/pdf.js
+* BootstrapVue(MIT License): https://bootstrap-vue.org/
+* A-Frame(MIT License): https://github.com/aframevr/aframe/
+* A-Frame Extras(MIT License): https://github.com/n5ro/aframe-extras
+* html2canvas(MIT License): https://html2canvas.hertzen.com/
 
 本ソフトウェアは研究用を目的に公開しています。
 作者（Satoshi Takahashi）は本ソフトウェアの動作を保証せず、本ソフトウェアを使用して発生したあらゆる結果について一切の責任を負いません。
@@ -98,7 +106,7 @@ OSSとして素晴らしいソフトウェアを公開された方々に感謝�
 
 
 
-PDFの通り本モデルは研究用を目的に[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.ja)で公開しています。
+PDFの通りモデルは研究用を目的に[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.ja)で公開しています。
 作者（Satoshi Takahashi）は本モデルの動作を保証せず、本モデルを使用して発生したあらゆる結果について一切の責任を負いません。
 
 ※ 出典を書く際はBlogのURL記載またはリンクをお願いします。
